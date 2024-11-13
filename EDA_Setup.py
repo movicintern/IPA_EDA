@@ -7,7 +7,7 @@ class SETUP:
         self.data_abs_dir = data_abs_dir 
         self.target_sensors = target_sensors
 
-        self.resul_abs_dir = '/home/mg/EDA/EDA/Result' # '/home/mg/True_NAS2/EDA_IPA_01_(MG_JY)/JY'
+        self.resul_abs_dir = "/home/mg/.CODE/IPA/IPA_EDA/Results"
 
         self.data_dir_path = [os.path.join(self.data_abs_dir, target_sensor) for target_sensor in self.target_sensors]
         
@@ -37,19 +37,19 @@ class SETUP:
 
     def apply(self):
 
-        # if self.multi_sensor_view:
-            # os.makedirs(os.path.join(self.spectrogram_path, 'multi_sensor'), exist_ok=True)
-        #     os.makedirs(os.path.join(self.spectrum_path, 'multi_sensor'), exist_ok=True)
-        #     os.makedirs(os.path.join(self.pseudo_spectrum_path, 'multi_sensor'), exist_ok=True)
-        #     os.makedirs(os.path.join(self.frequency_feature_path, 'multi_sensor'), exist_ok=True)
-        #     os.makedirs(os.path.join(self.operation_path, 'multi_sensor'), exist_ok=True)
+        if self.multi_sensor_view:
+            os.makedirs(os.path.join(self.spectrogram_path, 'multi_sensor'), exist_ok=True)
+            # os.makedirs(os.path.join(self.spectrum_path, 'multi_sensor'), exist_ok=True)
+            # os.makedirs(os.path.join(self.pseudo_spectrum_path, 'multi_sensor'), exist_ok=True)
+            # os.makedirs(os.path.join(self.frequency_feature_path, 'multi_sensor'), exist_ok=True)
+            # os.makedirs(os.path.join(self.operation_path, 'multi_sensor'), exist_ok=True)
 
-        # else:
-            # for sensor_name in self.target_sensors:
-                # os.makedirs(os.path.join(self.spectrogram_path, sensor_name), exist_ok=True)
-        #         os.makedirs(os.path.join(self.spectrum_path, sensor_name), exist_ok=True)
-        #         os.makedirs(os.path.join(self.pseudo_spectrum_path, sensor_name), exist_ok=True)
-        #         os.makedirs(os.path.join(self.frequency_feature_path, sensor_name), exist_ok=True)
-        #         os.makedirs(os.path.join(self.operation_path, sensor_name), exist_ok=True)
+        else:
+            for sensor_name in self.target_sensors:
+                os.makedirs(os.path.join(self.spectrogram_path, sensor_name), exist_ok=True)
+                # os.makedirs(os.path.join(self.spectrum_path, sensor_name), exist_ok=True)
+                # os.makedirs(os.path.join(self.pseudo_spectrum_path, sensor_name), exist_ok=True)
+                # os.makedirs(os.path.join(self.frequency_feature_path, sensor_name), exist_ok=True)
+                # os.makedirs(os.path.join(self.operation_path, sensor_name), exist_ok=True)
 
-        pass
+   

@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import os 
 from scipy.stats import zscore
+from scipy.signal import find_peaks
 
 class SignalConvertor:
 
@@ -172,37 +173,37 @@ class RunDownTracker:
         
     #     return quantile_val
 
-    # def _freq_cut(self, data, low_cut=20000, high_cut=60000):
-    #     # if data.ndim != 2:
-    #     #     raise ValueError("Input must be a 2D array.")
+    def _freq_cut(self, data, low_cut=20000, high_cut=60000):
+        # if data.ndim != 2:
+        #     raise ValueError("Input must be a 2D array.")
 
-    #     low_cut = low_cut
-    #     high_cut = high_cut
+        low_cut = low_cut
+        high_cut = high_cut
         
-    #     # h, _ = data.shape
-    #     # unit = h / 192000
-    #     # low_index, high_index = max(0, int(h - unit * high_cut)), min(h, int(h - unit * low_cut))
+        # h, _ = data.shape
+        # unit = h / 192000
+        # low_index, high_index = max(0, int(h - unit * high_cut)), min(h, int(h - unit * low_cut))
         
-    #     # if low_index >= high_index:
-    #     #     raise ValueError("Cut indices are out of bounds.")
+        # if low_index >= high_index:
+        #     raise ValueError("Cut indices are out of bounds.")
         
-    #     # return data[low_index:high_index, :]
-    #     _ , dim = data.shape
-    #     start_idx = int(low_cut / (384000 / 2) * dim)
-    #     # data = np.array(data)[:, start_idx:]
+        # return data[low_index:high_index, :]
+        _ , dim = data.shape
+        start_idx = int(low_cut / (384000 / 2) * dim)
+        # data = np.array(data)[:, start_idx:]
         
-    #     end_idx = int(high_cut / (384000 / 2) * dim)
-    #     # data = np.array(data)[:, :end_idx]
+        end_idx = int(high_cut / (384000 / 2) * dim)
+        # data = np.array(data)[:, :end_idx]
         
-    #     data = np.array(data)[:, start_idx:end_idx]
-    #     return data
+        data = np.array(data)[:, start_idx:end_idx]
+        return data
 
     def _rate_of_change_analysis(self, data):
-        #cut_data = self._freq_cut(np.flip(data.T, axis=0),low_cut=self.low_cut, high_cut=self.high_cut)
-        abs_change = np.abs(np.diff(data, axis=1))
-        summary_value = np.mean([np.mean(abs_change, axis=1), np.median(abs_change, axis=1), np.std(abs_change, axis=1)], axis=0)
+        # cut_data = self._freq_cut(np.flip(data.T, axis=0),low_cut=self.low_cut, high_cut=self.high_cut)
+        # abs_change = np.abs(np.diff(cut_data, axis=1))
+        abs_change = np.abs(np.diff(np.flip(data.T, axis=0), axis=1))
+        summary_value = np.mean([np.mean(abs_change, axis=1), np.median(abs_change, axis=1), np.std(abs_change, axis=1), np.max(abs_change, axis=1)], axis=0)
         return np.mean(summary_value)
-
     def interpolation(self, data):
         data = np.asarray(data)
         is_nested = data.ndim == 2

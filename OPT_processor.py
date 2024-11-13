@@ -9,8 +9,6 @@ from concurrent.futures import ProcessPoolExecutor
 from utils.Excel_processor import IPA_Excel_Processor
 
 
-
-
 def process_sensor_data(sensor_name, data_extractor, setup, spectrogram, tracker, idx, blue="\033[34m", reset="\033[0m"):
 
     spectro_set = []
@@ -28,17 +26,16 @@ def process_sensor_data(sensor_name, data_extractor, setup, spectrogram, tracker
         date_info_list.append(date_info[0])
 
         if not setup.multi_sensor_view:
-            #plot_spectrogram(sensor_name, spectro, setup, date_info)
+            plot_spectrogram(sensor_name, spectro, setup, date_info)
             prob_set.append(prob)
         else:
-            #spectro_set.append(spectro)
+            spectro_set.append(spectro)
             prob_set[idx].append(prob)
             
     return sensor_name, spectro_set, prob_set, date_info_list
 
 
 def main():
-
     yellow = "\033[33m"
     reset = "\033[0m"
     red = "\033[31m"
@@ -49,30 +46,33 @@ def main():
     parser.add_argument('--start_date', type=str, required=True, help='Start date')
     parser.add_argument('--end_date', type=str, required=True, help='End date')
     parser.add_argument('--cut_time', type=int, required=False, help='cut time')
-
-    parser.add_argument('--step', type=int, required=False, help='Step level')
+    parser.add_argument('--extend', type=str, required=False, help='time_extension')
 
     args = parser.parse_args()
-
+    
+    
     spectrogram = Spectrogram()
-    #spectrum = Spectrum()
     tracker = RunDownTracker(tot_sensors=len(args.target_sensors))
+    #spectrum = Spectrum()
     #plot_tracker = TrackerVisualizer()
 
     #####--???
-    adjusted_start, adjusted_end = tracker.time_range_extention(args.start_date, args.end_date, minutes = 0, extend=False)
+    start_date, end_date = (tracker.time_range_extention(args.start_date, args.end_date, minutes=0, extend=False) 
+                        if args.extend else (args.start_date, args.end_date))
 
+        
     cut_time = args.cut_time if args.cut_time else 3
 
     setup = SETUP(
         data_abs_dir=args.data_abs_dir,
         target_sensors=args.target_sensors,
-        start_date=args.start_date,
-        end_date=args.end_date,
-        cut_time= cut_time,
+        start_date=start_date,
+        end_date=end_date,
+        cut_time=cut_time,
     )
     
     setup.apply()
+
     data_extractors = [
         DataExtractor(
             abs_dir=data_dir_path,
@@ -112,6 +112,8 @@ def main():
     #     ):
     #         current_slice = [spectro_set[i] for spectro_set in spectro_sets]
     #         current_date_info = [date_info_list[i] for date_info_list in date_info_lists] 
+    #         print(current_slice)
+    #         print()
     #         multiple_plot_spectrogram(setup.target_sensors, current_slice, setup, current_date_info[0])
 
     prob_organizer = [[] for _ in range(len(setup.target_sensors))] if setup.multi_sensor_view else [[]]
@@ -130,26 +132,43 @@ def main():
             prob_organizer = sensor_prob_set  
 
         print(f"Complete Processing sensor: {sensor_name}\n")  
-        
+    
     speed_command = tracker.processor(prob_organizer, multiview_Flag=Flag)
-    print(speed_command)
-
+ 
+ 
     # plot_tracker.visualize(args.target_sensors, V, setup, 
     #     T=tracker.run_down_classification(args.start_date, args.end_date, Is_init=True, only_non=False),  
     #     multiview_Flag=Flag
     # )
 
-    # to_excel = IPA_Excel_Processor(
-    #     excel_path="/home/movic/Excel/PLC_data/plc_10.xlsx",
-    #     save_path="/home/movic/Excel/PLC_data/plc_10.xlsx",
-    #     minutes_sync=43,
-    #     seconds_sync=30,
-    #     speed_command=np.array(speed_command),
-    #     setup=setup,
-    #     organizer=prob_organizer,
-    #     step=args.step
-    #     )
-    # to_excel.update_data()
+
+
+    Excel_info = {}
+    machine = os.path.basename(args.data_abs_dir)
+
+    names = ['1_motor-50kt', '3_motor-10kt', '2_waterpump', '4_watergate']
+    syncs = [[43, 30], [22, 0], [41, 0], [41, 0]]
+
+    for name, sync in zip(names, syncs):
+        Excel_info[name] = {
+            'sync': sync,
+            'path': f'Excel_dir/base_{name}.xlsx'
+        }
+
+    excel_path = Excel_info[f'{machine}']['path']
+    excel_sync = Excel_info[f'{machine}']['sync']
+    
+    to_excel = IPA_Excel_Processor(
+        excel_path=excel_path,
+        save_path="/home/movic/Excel/PLC_data/plc_10.xlsx",
+        minutes_sync=excel_sync[0],
+        seconds_sync=excel_sync[1],
+        speed_command=np.array(speed_command),
+        setup=setup,
+        organizer=prob_organizer,
+        step=args.step
+        )
+    to_excel.update_data()
     
     print(f"Operation Intervals: {tracker.timestamp_grouping(prob_organizer, setup)}")
 
